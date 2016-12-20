@@ -1,16 +1,22 @@
 PYINC = $(shell python-config --includes)
 PYLIB = $(shell python-config --libs)
+.SUFFIXES:
+.SUFFIXES: .o .c .py
+SRC = zpp_config.py prefork.py zpp_log.py zpp_clp.py zpp_lib.py zpp_hb_lib.py
+COBJ = ${SRC:.py=.c}
+OBJ = zpp.o ${COBJ:.c=.o}
+ZPP = zpp
 
-all: zpp
-zpp: prefork.o zpp.o
-	gcc -o zpp $(PYINC) zpp.o prefork.o $(PYLIB)
+all: $(SRC) $(ZPP)
+$(ZPP): $(OBJ)
+	gcc -o $@ $(PYINC) $(OBJ) $(PYLIB)
 zpp.c: zpp.py
 	cython --embed zpp.py
 zpp.o: zpp.c
 	gcc -c $(PYINC)  zpp.c
-prefork.c: prefork.py
-	cython prefork.py
-prefork.o: prefork.c
-	gcc -c $(PYINC) prefork.c
+.py.c:
+	cython -o $@ $<
+.c.o:
+	gcc -c $(PYINC) $< -o $@
 clean:
-	rm -f zpp.c prefork.c *.o zpp
+	rm -f *.c *.o zpp

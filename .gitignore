@@ -6,3 +6,5 @@ src/zpp.c
 src/prefork.c
 
 src/zpp
+
+src/zpp_config.c
