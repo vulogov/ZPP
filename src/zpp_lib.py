@@ -52,3 +52,16 @@ def get_dir_content(dname):
             continue
         ret.append((f, "%s/%s"%(dname, f), os.path.splitext(f)))
     return ret
+
+def repeat(fun, log_fun, max_attempts, msg="Attempt: "):
+    c = 0
+    while c < max_attempts:
+        log_fun("info", "%s (# %d)"%(msg, c))
+        c += 1
+        try:
+            res = fun()
+        except KeyboardInterrupt:
+            continue
+        if res != False:
+            return True
+    return False

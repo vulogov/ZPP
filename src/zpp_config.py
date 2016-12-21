@@ -8,6 +8,8 @@ from zpp_hb_lib import *
 
 _DESC="""Zabbix Python Proxy"""
 _EPILOG="""ZPP will interact with Zabbix Server and Zabbix Proxies providing you a smart and programmable connector for all purposes."""
+_MAXATTEMPTS=100
+
 
 class PyConfig:
     def __init__(self):
@@ -50,8 +52,14 @@ class ClipsConfig:
 
 class RunConfig:
     def __init__(self):
+        self.parser.add_argument("-i", "--id", type=str, required=True,
+                                 help="ZPP Instance ID")
         self.parser.add_argument('model', metavar='N', type=str, nargs='*',help='Make of the model to process')
+        self.parser.add_argument("--attempts", type=int, default=5,
+                                 help="Number of repeated attempts for the failed operation")
         self.parser.add_argument("--verbose", "-v", action='count')
+        self.parser.add_argument("--stdout", action='store_true',
+                                 help="Send log to STDOUT")
         self.parser.add_argument("-l", "--log", type=str,
                                  help="Directory for the log files")
         self.parser.add_argument("--log_backup", type=int, default=5,
@@ -60,6 +68,10 @@ class RunConfig:
                                  help = "Maximum size of log file")
         self.parser.add_argument("-p", "--pid", default="/tmp", type=str,
                                  help="Directory for the PID files")
+        self.parser.add_argument("--zoo_cfg", default="/etc/mesos/zk.cfg", type=str,
+                                 help="Path to the file, holding Zookeeper URL")
+        self.parser.add_argument("--zookeeper", default="zk://127.0.0.1:2181/zpp", type=str,
+                                 help="Zookeeper URI")
 
         self.ready -= 1
     def process(self):
@@ -89,6 +101,22 @@ class RunConfig:
             print "Log file size %s is invalid"%self.args.log_size
             self.ready += 1
         self.log_max = self.args.log_backup
+        if self.args.zoo_cfg and check_file_read(self.args.zoo_cfg):
+            try:
+                self.zoo = open(self.args.zoo_cfg).read().strip()
+            except:
+                print "Can not read Zookeeper URI file %s"%self.args.zoo_cfg
+                self.ready += 1
+        else:
+            self.zoo = self.args.zookeeper
+        self.attempts = self.args.attempts
+        if self.attempts > _MAXATTEMPTS:
+            print "You specified too many attempts %s vs %s" % (bytes2human(self.attempts),_MAXATTEMPTS)
+            self.ready += 1
+        self.instance = self.args.id
+        if not self.instance:
+            print "You did not specified ZPP Instance ID"
+            self.ready += 1
 
 
 class Config(PyConfig, RunConfig,ClipsConfig):
@@ -112,3 +140,6 @@ class Config(PyConfig, RunConfig,ClipsConfig):
     def parse_args(self):
         self.args = self.parser.parse_args()
         print self.args
+    def shutdown(self):
+        self.log("info", "Config shutdown")
+        pass
