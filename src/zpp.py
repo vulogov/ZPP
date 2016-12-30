@@ -22,9 +22,10 @@ class Main(Config, Log, Zookeeper):
             self.shutdown()
             sys.exit(52)
         try:
-            self.clips = CLP(self,
-                             bootstrap=self.bootstrap_file,
-                             initial_facts=self.bootstrap_facts)
+            self.clips = CLP(main=self,
+                             python=self.pyclips,
+                            bootstrap=self.bootstrap_file,
+                            initial_facts=self.bootstrap_facts)
         except ValueError, msg:
             self.log("critical", "ZPP Error during CLP initialization: %s"%msg)
             sys.exit(53)

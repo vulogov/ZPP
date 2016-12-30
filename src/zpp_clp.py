@@ -78,9 +78,18 @@ class CLPEXEC:
     def bootstrap_dir(self, path):
         for f, fpath, fmod in get_dir_content(path):
             try:
+                print fpath
                 clips.Load(fpath)
-            except:
+            except KeyboardInterrupt:
                 raise ValueError, "Error in bootstrapping from %s"%fpath
+    def bootstrap_facts(self, initial_facts_dir):
+        if not initial_facts_dir:
+            return
+        for f, fpath, fmod in get_dir_content(initial_facts_dir):
+            try:
+                clips.LoadFacts(fpath)
+            except:
+                raise ValueError, "Error in loading facts from %s"%fpath
 
 class LOADER:
     def _load(self, lf_file, lf_string, args):
@@ -112,7 +121,14 @@ class CLP(ENV,PYLOADER):
         self.bootstrap_file = None
         self.model = None
         self.initial_facts = None
+        self.initial_facts_dir=None
 
+        self.main = None
+
+        if kw.has_key("main"):
+            self.main = kw["main"]
+        else:
+            raise ValueError, "ZPP MAIN not passed to CLP"
         if kw.has_key("python"):
             self.python_path = kw["python"]
         if kw.has_key("bootstrap") and check_file_read(kw["bootstrap"]):
@@ -123,6 +139,8 @@ class CLP(ENV,PYLOADER):
             self.model = None
         if kw.has_key("initial_facts") and check_file_read(kw["initial_facts"]):
             self.initial_facts = kw["initial_facts"]
+        if kw.has_key("initial_facts_dir") and check_file_read(kw["initial_facts_dir"]):
+            self.initial_facts = kw["initial_facts_dir"]
         if kw.has_key("model_path") and check_directory(kw["model_path"]):
             self.model_path = kw["model_path"]
         else:
@@ -136,6 +154,7 @@ class CLP(ENV,PYLOADER):
         ## Reload CLIPS modules
         for dir in self.mods.keys():
             for mod in self.mods[dir].keys():
+                self.main.log("debug", "Loading PYCLIPS: %s"%mod)
                 self.load_module(mod)
         if self.bootstrap_file != None:
             ## We do have a bootstrap
@@ -170,7 +189,10 @@ class CLP(ENV,PYLOADER):
         else:
             raise ValueError, "Mo model specified"
         ## Load initial facts
-        clips.LoadFacts(self.initial_facts)
+        self.bootstrap_facts(self.initial_facts_dir)
+        if self.initial_facts and check_file_read(self.initial_facts):
+            clips.LoadFacts(self.initial_facts)
+        self.main.log("debug", "ZPP CLP initialized")
     def Run(self):
         import traceback
         clips.Run()

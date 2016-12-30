@@ -14,6 +14,9 @@ _MAXATTEMPTS=100
 class PyConfig:
     def __init__(self):
         self.parser.add_argument("-n", "--python", type=str, default=".", help="Semi-colon separated list of the directories added to a PYTHONPATH")
+        self.parser.add_argument("--pyclips", type=str, default=".",
+                                 help="Semi-colon separated list of the directories containing PYCLIPS libraries")
+
         self.ready -= 1
     def process(self):
         for d in self.args.python.split(";"):
@@ -22,12 +25,24 @@ class PyConfig:
                 self.ready += 1
             else:
                 sys.path.append(d)
+        self.pyclips = []
+        for d in self.args.pyclips.split(";"):
+            if not check_directory(d):
+                print "Directory %s can not be accessed for a PYCLIPS modules" % d
+                self.ready += 1
+            elif not check_file_read("%s/init_pyclips.py"%d):
+                print "Directory %s is invalid for a PYCLIPS" % d
+                self.ready += 1
+            else:
+                self.pyclips.append(d)
 class ClipsConfig:
     def __init__(self):
         self.parser.add_argument("-c", "--config", type=str, default="/etc/zpp",
                                  help="Path to the config (bootstrap) directory")
         self.parser.add_argument("-m", "--models", type=str, default="/etc/zpp/models",
                                  help="Path to the models directory")
+        self.parser.add_argument("-f", "--initial-facts-dir", type=str, default="/etc/zpp/initial-facts",
+                                 help="Path to the initial facts directory")
         self.parser.add_argument("--trace", "-t", action="store_true")
         self.ready -= 1
     def process(self):
@@ -46,6 +61,10 @@ class ClipsConfig:
         self.trace = self.args.trace
         if not check_directory(self.args.models):
             print "Can not find models directory %s" % self.models_path
+            self.ready += 1
+        self.initial_facts_dir = self.args.initial_facts_dir
+        if not check_directory(self.args.initial_facts_dir):
+            print "Can not find initial facts directory %s" % self.initial_facts_dir
             self.ready += 1
 
 
