@@ -205,5 +205,10 @@ class CLP(ENV,PYLOADER):
                 clips.Build(getattr(mod, e))
                 c += 1
         return c
+    def globalCLEAR(self):
+        clips.Reset()
+        clips.Clear()
+    def shutdown(self):
+        self.globalCLEAR()
 
 

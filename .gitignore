@@ -8,3 +8,17 @@ src/prefork.c
 src/zpp
 
 src/zpp_config.c
+
+.idea/misc.xml
+
+.idea/modules.xml
+
+.idea/vcs.xml
+
+.idea/workspace.xml
+
+.idea/ZPP.iml
+
+.idea/emacs.xml
+
+*.pyc
