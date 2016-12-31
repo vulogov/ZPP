@@ -43,7 +43,10 @@ class ClipsConfig:
                                  help="Path to the models directory")
         self.parser.add_argument("-f", "--initial-facts-dir", type=str, default="/etc/zpp/initial-facts",
                                  help="Path to the initial facts directory")
-        self.parser.add_argument("--trace", "-t", action="store_true")
+        self.parser.add_argument("--trace", "-t", type=str, help="Trace mode for CLIPS")
+        self.parser.add_argument("--sync", action="store_true", help="Sync facts and models to Zookeeper")
+        self.parser.add_argument("--shell", action="store_true", help="Start interactive shell")
+
         self.ready -= 1
     def process(self):
         self.bootstrap_file = "%s/bootstrap.clp"%self.args.config
@@ -94,7 +97,7 @@ class RunConfig:
 
         self.ready -= 1
     def process(self):
-        if len(self.args.model) == 0:
+        if len(self.args.model) == 0 and not self.args.shell:
             print "You did not specified any model to run"
             self.ready += 1
         self.log_path = self.args.log

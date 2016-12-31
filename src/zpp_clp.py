@@ -122,7 +122,7 @@ class CLP(ENV,PYLOADER):
         self.model = None
         self.initial_facts = None
         self.initial_facts_dir=None
-
+        self.trace = None
         self.main = None
 
         if kw.has_key("main"):
@@ -131,6 +131,8 @@ class CLP(ENV,PYLOADER):
             raise ValueError, "ZPP MAIN not passed to CLP"
         if kw.has_key("python"):
             self.python_path = kw["python"]
+        if kw.has_key("trace") and kw["trace"] != None:
+            self.trace = kw["trace"].lower().strip()
         if kw.has_key("bootstrap") and check_file_read(kw["bootstrap"]):
             self.bootstrap_file = kw["bootstrap"]
         if kw.has_key("model") and check_file_read(kw["model"]):
@@ -150,7 +152,17 @@ class CLP(ENV,PYLOADER):
         else:
             self.models = []
         ENV.__init__(self)
+        if self.trace != None:
+            try:
+                clips.Eval("(watch %s)"%self.trace)
+            except:
+                raise ValueError, "Invalid option for the (watch %s)"%self.trace
         PYLOADER.__init__(self, self.python_path)
+        self.ReloadClipsModules()
+        self.ReloadClipsModels()
+        self.ReloadInitialFacts()
+    def ReloadClipsModules(self):
+        import posixpath
         ## Reload CLIPS modules
         for dir in self.mods.keys():
             for mod in self.mods[dir].keys():
@@ -168,6 +180,7 @@ class CLP(ENV,PYLOADER):
             other_base = os.environ["HOME"]+".zpp/bootstrap"
             if check_directory(other_base):
                 self.bootstrap_dir(other_base)
+    def ReloadClipsModels(self):
         ## Load model
         if self.model != None:
             try:
@@ -186,8 +199,11 @@ class CLP(ENV,PYLOADER):
                     pm += 1
             if pm == 0:
                 raise ValueError, "Not enough models"
+        elif self.main.args.shell == True:
+            self.main.log("info", "No models were provided, but Interactive shell were requested")
         else:
             raise ValueError, "Mo model specified"
+    def ReloadInitialFacts(self):
         ## Load initial facts
         self.bootstrap_facts(self.initial_facts_dir)
         if self.initial_facts and check_file_read(self.initial_facts):

@@ -3,9 +3,9 @@ __version__ = 'v0.1.0'
 
 import clips
 
-check_file_read_clips="(deffunction check_file_read (?str ) (python-call _check_file_read ?str ))"
-check_file_write_clips="(deffunction check_file_write (?str ) (python-call _check_file_write ?str ))"
-check_directory_clips="(deffunction check_directory (?str ) (python-call _check_directory ?str ))"
+_check_file_read_clips="(deffunction check_file_read (?str ) (python-call _check_file_read ?str ))"
+_check_file_write_clips="(deffunction check_file_write (?str ) (python-call _check_file_write ?str ))"
+_check_directory_clips="(deffunction check_directory (?str ) (python-call _check_directory ?str ))"
 
 
 def _check_file_read(_str):

@@ -24,6 +24,7 @@ class Main(Config, Log, Zookeeper):
         try:
             self.clips = CLP(main=self,
                              python=self.pyclips,
+                             trace=self.trace,
                             bootstrap=self.bootstrap_file,
                             initial_facts=self.bootstrap_facts)
         except ValueError, msg:
@@ -40,6 +41,11 @@ class Main(Config, Log, Zookeeper):
             self.log("critical", "ZPP is not ready. Exit.")
             self.shutdown()
             sys.exit(50)
+        if self.args.shell:
+            self.log("info", "Entering interactive shell")
+            import zpp_clips_shell
+            s = zpp_clips_shell.Shell()
+            s.Run()
         self.shutdown()
 
 
